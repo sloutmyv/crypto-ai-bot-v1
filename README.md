@@ -46,3 +46,19 @@ pip install -r requirements.txt
 | **`indicators.py`** | *Pipeline* : lit les chandeliers Parquet générés au Sprint S1, calcule SMA 50, EMA 21, RSI 14, MACD (12‑26‑9), Bollinger Bands et enregistre le résultat dans `data/<symb>_<interval>_ta.parquet`. | `python indicators.py --interval 1m`<br>(adapter `--interval` : `15m`, `1h`, etc.) |
 | **`tests/test_indicators.py`** | *Smoke‑test* : vérifie que le fichier TA existe, que les colonnes clés (`sma50`, `ema21`, `rsi14`, `MACD_12_26_9`, `BBU_20_2.0`) sont présentes et qu’il n’y a plus de NaN après la période d’amorçage. | `pytest tests/test_indicators.py` |
 | **`preview.py`** | *Visualisation rapide* : trace dans Matplotlib (ou Jupyter) :<br>1) prix + SMA/EMA + bandes de Bollinger,<br>2) RSI 14 avec zones 30/70,<br>3) MACD + histogramme. | `python preview.py --interval 1m --rows 1000` |
+
+
+
+# Feuille de route : 
+| Sprint | Objectif principal | Livrables clés |
+|--------|-------------------|----------------|
+| **S0 — Bootstrap** | Poser l’environnement : repo Git, venv Python 3.12, dépendances de base, README, clés API dans `.env`. | • Repo initial<br>• README (+ archi)<br>• Smoke‑test imports |
+| **S1 — Collecte données** | Obtenir l’historique + flux temps réel BTC/USDC (spot) via Binance. | • `historical.py` (REST)<br>• `streamer.py` (WS raw, SQLite)<br>• Parquets & DB<br>• Tests de remplissage |
+| **S2 — Indicateurs techniques** | Calculer SMA / EMA / RSI / MACD / Bollinger et créer un dataset enrichi. | • `indicators.py`<br>• Parquet *_ta*<br>• Tests indicateurs<br>• Notebooks de visualisation |
+| **S3 — Sentiment LLM** | Pipeline qui interroge Crypto‑news + X/Twitter, classe « bullish/neutral/bearish » via LLM, produit un `sentiment_score` horodaté. | • `sentiment.py` (ingest + LLM)<br>• Parquet sentiment<br>• Tests classification |
+| **S4 — Fusion signaux** | Combiner règles TA + sentiment pour générer des signaux d’achat/vente paramétrables. | • `decision.py` (rules YAML)<br>• Tests unitaires règles |
+| **S5 — Backtesting** | Évaluer la stratégie sur plusieurs années ; métriques : CAGR, Sharpe, Max DD. | • `backtest.py` (vectorbt)<br>• Rapport HTML/Notebook<br>• Script Optuna hyper‑param |
+| **S6 — Gestion du risque** | Position sizing (fix %, ATR stop‑loss, Kelly) + drawdown kill‑switch. | • `risk.py`<br>• Tests de stress<br>• Alertes webhook |
+| **S7 — Paper‑trading** | Exécuter la strat sur le testnet Binance, journaliser les ordres. | • `executor.py` (testnet)<br>• Log JSON + alertes |
+| **S8 — Production locale 24/7** | Service de trading réel (spot/marge) tournant en continu sur Mac/VPS. | • Script daemon + auto‑restart<br>• Dashboard Streamlit |
+| **S9 — Durcissement & Cloud** | Dockerisation, déploiement sur serveur, monitoring Prometheus/Grafana. | • `Dockerfile` + docker‑compose<br>• Grafana dashboards |
