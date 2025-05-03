@@ -31,3 +31,11 @@ source .venv/bin/activate
 pip install --upgrade pip
 pip install -r requirements.txt
 ```
+
+# Sprint S1
+| Fichier | Rôle dans l’architecture | Commandes clés |
+|---------|--------------------------|----------------|
+| **`config.py`** | Charge le `.env` et fournit :<br>• client REST (`Spot`)<br>• client WebSocket (`SpotWebsocketStreamClient`) | *Aucun lancement direct* – importé par les autres modules |
+| **`historical.py`** | Télécharge l’historique de chandeliers **BTCUSDC** (par pas de 200 j / 1500 bougies) et l’enregistre en **Parquet** | ```bash\npython historical.py --interval 1m --days 1095   # 3 ans, 1 min\npython historical.py --interval 1h --days 1825       # 5 ans, 1 h\n``` |
+| **`streamer.py`** | Écoute le flux WebSocket **kline 1 min** en temps réel et insère / met à jour les bougies dans **SQLite (data/realtime.db)** | ```bash\npython streamer.py          # boucle continue, Ctrl‑C pour arrêter\n``` |
+| *(optionnel)* **`tests/test_data.py`** | Smoke‑tests : vérifie que le Parquet existe et que la table SQLite reçoit des lignes | ```bash\npytest tests/\n``` |
