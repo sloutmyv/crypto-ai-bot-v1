@@ -43,7 +43,7 @@ pip install -r requirements.txt
 # Sprint S2 - Calcul des indicateurs techniques
 | Fichier | Objectif / rôle | Commande principale |
 |---------|-----------------|---------------------|
-| **`indicators.py`** | *Pipeline* : lit les chandeliers Parquet générés au Sprint S1, calcule SMA 50, EMA 21, RSI 14, MACD (12‑26‑9), Bollinger Bands et enregistre le résultat dans `data/<symb>_<interval>_ta.parquet`. | `python indicators.py --interval 1m`<br>(adapter `--interval` : `15m`, `1h`, etc.) |
+| **`indicators.py`** | *Pipeline* : lit les chandeliers Parquet générés au Sprint S1, calcule SMA 50, EMA 21, RSI 14, MACD (12‑26‑9), Bollinger Bands et enregistre le résultat dans `data/<symb>_<interval>_ta.parquet`. | `python S2/indicators.py --interval 1h`<br>(adapter `--interval` : `15m`, `1h`, etc.) |
 | **`tests/test_indicators.py`** | *Smoke‑test* : vérifie que le fichier TA existe, que les colonnes clés (`sma50`, `ema21`, `rsi14`, `MACD_12_26_9`, `BBU_20_2.0`) sont présentes et qu’il n’y a plus de NaN après la période d’amorçage. | `pytest tests/test_indicators.py` |
 | **`preview.py`** | *Visualisation rapide* : trace dans Matplotlib (ou Jupyter) :<br>1) prix + SMA/EMA + bandes de Bollinger,<br>2) RSI 14 avec zones 30/70,<br>3) MACD + histogramme. | `python preview.py --interval 1m --rows 1000` |
 
