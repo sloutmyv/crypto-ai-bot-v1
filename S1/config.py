@@ -2,7 +2,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 from dotenv import load_dotenv
-from binance.spot import Spot as Client                     # ← import corrigé
+from binance.spot import Spot as Client
 from binance.websocket.spot.websocket_stream import SpotWebsocketStreamClient
 
 load_dotenv()

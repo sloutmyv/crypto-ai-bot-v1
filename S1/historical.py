@@ -1,17 +1,10 @@
-"""
-historical.py – Télécharge les chandeliers Binance sans en perdre.
-* Télécharge par tranches de MAX_SPAN_DAYS (200 j) ;
-* À l’intérieur d’une tranche, boucle tant que l’API renvoie MAX_LIMIT (=1 000)
-  bougies, en avançant le curseur startTime d’1 ms après la dernière bougie.
-"""
-
 from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 import time, argparse, pandas as pd
-from config import rest_client
+from config import rest_client # Assurez-vous que config.py et rest_client sont accessibles
 
-SYMBOL          = "BTCUSDC"
+# SYMBOL n'est plus une constante globale ici, il sera passé en argument
 DATA_DIR        = Path("data"); DATA_DIR.mkdir(exist_ok=True)
 MAX_LIMIT       = 1000                   # limite officielle de l’API
 MAX_SPAN_DAYS   = 200
@@ -33,7 +26,7 @@ def fetch_interval(symbol: str, interval: str,
     cur = start
     while cur < end:
         kl = spot.klines(
-            symbol, interval,
+            symbol, interval, # Utilisation du symbol passé en argument
             startTime=iso_ms(cur),
             endTime=iso_ms(end),
             limit=MAX_LIMIT
@@ -52,19 +45,27 @@ def fetch_interval(symbol: str, interval: str,
         time.sleep(0.25)    # garde‑fou limite poids
     return frames
 
-def main(interval: str, days: int):
-    target = DATA_DIR / f"btc_usdc_{interval}.parquet"
+# Modification de la signature de main pour accepter symbol
+def main(symbol: str, interval: str, days: int):
+    # Nettoyage du symbole pour le nom de fichier (ex: ETH/USDC -> ethusdc)
+    # et construction dynamique du nom de fichier
+    safe_symbol = symbol.lower().replace('/', '').replace('-', '')
+    filename = f"{safe_symbol}_{interval}_{days}d.parquet"
+    target = DATA_DIR / filename
+
     end_date   = datetime.now(timezone.utc)
     start_date = end_date - timedelta(days=days)
 
-    print(f"Downloading {SYMBOL} {interval}  –  {start_date:%Y-%m-%d} → {end_date:%Y-%m-%d}")
+    # Utilisation du symbol passé en argument dans le message
+    print(f"Downloading {symbol} {interval}  –  {start_date:%Y-%m-%d} → {end_date:%Y-%m-%d}")
 
     frames = []
     cur_blk = start_date
     while cur_blk < end_date:
         blk_end = min(cur_blk + timedelta(days=MAX_SPAN_DAYS), end_date)
         print(f"  ▸ Block {cur_blk:%Y-%m-%d} → {blk_end:%Y-%m-%d}")
-        frames.extend(fetch_interval(SYMBOL, interval, cur_blk, blk_end))
+        # Passage du symbol à fetch_interval
+        frames.extend(fetch_interval(symbol, interval, cur_blk, blk_end))
         cur_blk = blk_end
         time.sleep(0.35)
 
@@ -84,8 +85,12 @@ def main(interval: str, days: int):
     print(f"✅ Saved {len(full):,} rows to {target}")
 
 if __name__ == "__main__":
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--interval", default="1h", help="1m / 15m / 1h / 1d …")
-    ap.add_argument("--days", type=int, default=365, help="Nb de jours à récupérer")
+    ap = argparse.ArgumentParser(description="Télécharge les chandeliers Binance et les sauvegarde en Parquet.")
+    # Ajout de l'argument --symbol
+    ap.add_argument("--symbol", default="ETHUSDC", help="La paire de trading (ex: BTCUSDT, ETHUSDC). Défaut: ETHUSDC")
+    ap.add_argument("--interval", default="1h", help="L'intervalle des chandeliers (ex: 1m, 15m, 1h, 1d). Défaut: 1h")
+    ap.add_argument("--days", type=int, default=365, help="Le nombre de jours de données à récupérer. Défaut: 365")
     args = ap.parse_args()
-    main(args.interval, args.days)
+
+    # Passage des arguments à la fonction main
+    main(args.symbol, args.interval, args.days)
