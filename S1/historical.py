@@ -1,5 +1,5 @@
 from __future__ import annotations
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone # Assurez-vous que timezone est importé
 from pathlib import Path
 import time, argparse, pandas as pd
 from config import rest_client # Assurez-vous que config.py et rest_client sont accessibles
@@ -50,14 +50,23 @@ def main(symbol: str, interval: str, days: int):
     # Nettoyage du symbole pour le nom de fichier (ex: ETH/USDC -> ethusdc)
     # et construction dynamique du nom de fichier
     safe_symbol = symbol.lower().replace('/', '').replace('-', '')
-    filename = f"{safe_symbol}_{interval}_{days}d.parquet"
+
+    # <<< MODIFICATION ICI >>>
+    # Obtenir la date actuelle au format YYMMDD
+    # Vous pouvez utiliser datetime.now() pour l'heure locale ou datetime.now(timezone.utc) pour UTC.
+    # Pour la cohérence avec end_date, utilisons UTC.
+    current_date_str = datetime.now(timezone.utc).strftime("%y%m%d")
+    filename = f"{safe_symbol}_{interval}_{days}d_{current_date_str}.parquet"
+    # <<< FIN MODIFICATION >>>
+
     target = DATA_DIR / filename
 
-    end_date   = datetime.now(timezone.utc)
+    end_date   = datetime.now(timezone.utc) # Ceci est la date de fin des données, pas nécessairement la date pour le nom du fichier
     start_date = end_date - timedelta(days=days)
 
     # Utilisation du symbol passé en argument dans le message
     print(f"Downloading {symbol} {interval}  –  {start_date:%Y-%m-%d} → {end_date:%Y-%m-%d}")
+    print(f"Target filename: {target}") # Ajout pour vérifier le nom du fichier
 
     frames = []
     cur_blk = start_date
